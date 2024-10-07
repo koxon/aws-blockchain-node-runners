@@ -140,10 +140,7 @@ Create your own copy of `.env` file and edit it to update with your AWS Account 
    npx cdk deploy near-single-node --json --outputs-file single-node-deploy.json
 ```
 
-6. After starting the node you need to wait for the initial synchronization process to finish. It may take about 30 minutes and you can use Amazon CloudWatch to track the progress. There is a script that publishes CloudWatch metrics every 5 minutes, where you can watch `current block` and `slots behind` metrics. When the node is fully synced the `slots behind` metric should go to 0. To see them:
-
-    - Navigate to [CloudWatch service](https://console.aws.amazon.com/cloudwatch/) (make sure you are in the region you have specified for `AWS_REGION`)
-    - Open `Dashboards` and select `near-single-node` from the list of dashboards.
+6. After starting the node you need to wait for the initial synchronization process to finish. It may take about 30 minutes and you can use Amazon CloudWatch to track the progress. 
 
 7. Connect with the RPC API exposed by the node:
 
@@ -228,11 +225,11 @@ The result should be like this (the actual balance might change):
    pwd
    # Make sure you are in aws-blockchain-node-runners/lib/near
 
-   export INSTANCE_ID=$(cat single-node-deploy.json | jq -r '..|.node-instance-id? | select(. != null)')
+   export INSTANCE_ID=$(cat single-node-deploy.json | jq -r '..|.nodeinstanceid? | select(. != null)')
    echo "INSTANCE_ID=" $INSTANCE_ID
    aws ssm start-session --target $INSTANCE_ID --region $AWS_REGION
-   sudo su bcuser
-   sudo journalctl -o cat -fu sol
+   # Run the following once you're in session manager
+   sudo journalctl -o cat -fu near
 ```
 2. How to check the logs from the EC2 user-data script?
 
@@ -252,7 +249,7 @@ The result should be like this (the actual balance might change):
    export INSTANCE_ID=$(cat single-node-deploy.json | jq -r '..|.node-instance-id? | select(. != null)')
    echo "INSTANCE_ID=" $INSTANCE_ID
    aws ssm start-session --target $INSTANCE_ID --region $AWS_REGION
-   sudo systemctl status sol
+   sudo systemctl status near
 ```
 4. How to upload a secret to AWS Secrets Manager?
 ```bash
