@@ -29,9 +29,9 @@ export const baseNodeConfig: configTypes.NearBaseNodeConfig = {
         process.env.NEAR_CPU_TYPE?.toLowerCase() == "x86_64"
             ? ec2.AmazonLinuxCpuType.X86_64
             : ec2.AmazonLinuxCpuType.ARM_64,
-    nearCluster: <configTypes.NearCluster>process.env.NEAR_CLUSTER || "mainnet-beta",
+    nearCluster: <configTypes.NearCluster>process.env.NEAR_CLUSTER || "mainnet",
     nearVersion: process.env.NEAR_VERSION || "2.11",
-    nodeConfiguration: <configTypes.NearNodeConfiguration>process.env.NEAR_NODE_CONFIGURATION || "baserpc",
+    nodeConfiguration: <configTypes.NearNodeConfiguration>process.env.NEAR_NODE_CONFIGURATION || "rpc",
     dataVolume: {
         sizeGiB: process.env.NEAR_DATA_VOL_SIZE ? parseInt(process.env.NEAR_DATA_VOL_SIZE) : 2000,
         type: parseDataVolumeType(
@@ -53,7 +53,8 @@ export const baseNodeConfig: configTypes.NearBaseNodeConfig = {
     nearNodeSecretARN: process.env.NEAR_NODE_IDENTITY_SECRET_ARN || "none",
     voteAccountSecretARN: process.env.NEAR_VOTE_ACCOUNT_SECRET_ARN || "none",
     authorizedWithdrawerAccountSecretARN: process.env.NEAR_AUTHORIZED_WITHDRAWER_ACCOUNT_SECRET_ARN || "none",
-    registrationTransactionFundingAccountSecretARN: process.env.NEAR_REGISTRATION_TRANSACTION_FUNDING_ACCOUNT_SECRET_ARN || "none",
+    registrationTransactionFundingAccountSecretARN:
+        process.env.NEAR_REGISTRATION_TRANSACTION_FUNDING_ACCOUNT_SECRET_ARN || "none",
 };
 
 export const haNodeConfig: configTypes.NearHAConfig = {
