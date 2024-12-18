@@ -37,12 +37,7 @@ echo "Installing RUST"
 sudo curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > /tmp/rustup-init.sh
 chmod +x /tmp/rustup-init.sh
 /tmp/rustup-init.sh -y
-echo "Print RUST bin"
-cat "$HOME/.cargo/env"
-echo "Sourcing RUST bin"
 source "$HOME/.cargo/env"
-echo "which rustc:"
-which rustc
 
 echo "Downloading assets zip file"
 aws s3 cp $ASSETS_S3_PATH ./assets.zip --region $AWS_REGION
@@ -207,7 +202,6 @@ sudo mkdir ./bin
 
 ln -s /var/near/data/ledger /home/near
 
-
 # if [[ $NODE_IDENTITY_SECRET_ARN == "none" ]]; then
 #     echo "Create node identity"
 #     sudo ./near-keygen new --no-passphrase -o /home/near/config/validator-keypair.json
@@ -217,77 +211,11 @@ ln -s /var/near/data/ledger /home/near
 #     sudo mv ~/validator-keypair.json /home/near/config/validator-keypair.json
 # fi
 
-# if [[ "$NEAR_NODE_TYPE" == "validator" ]]; then
-echo "Getting Validator secrets from Secret Manager"
-sudo aws secretsmanager get-secret-value --secret-id $NEAR_NODE_IDENTITY_SECRET_ARN --query SecretString --output text --region $AWS_REGION > /home/near/validator_key.json
-
-sed -i -e "s/koxon.testnet/koxon.pool.f863973.m0/g" /home/near/validator_key.json
-sed -i -e 's/private_key/secret_key/g' /home/near/validator_key.json
-
-# if [[ "$NEAR_NODE_TYPE" == "consensus" ]]; then
-#     if [[ $NODE_IDENTITY_SECRET_ARN == "none" ]]; then
-#         echo "Store node identity to AWS Secrets Manager"
-#         NODE_IDENTITY=$(sudo ./near-keygen pubkey /home/near/config/vote-account-keypair.json)
-#         sudo aws secretsmanager create-secret --name "near-node/"$NODE_IDENTITY --description "Near Node Identity Secret created for stack $CF_STACK_NAME" --secret-string file:///home/near/config/validator-keypair.json --region $AWS_REGION
-#     fi
-#     if [[ $VOTE_ACCOUNT_SECRET_ARN == "none" ]]; then
-#         echo "Create Vote Account Secret"
-#         sudo ./near-keygen new --no-passphrase -o /home/near/config/vote-account-keypair.json
-#         NODE_IDENTITY=$(sudo ./near-keygen pubkey /home/near/config/vote-account-keypair.json)
-#         echo "Store Vote Account Secret to AWS Secrets Manager"
-#         sudo aws secretsmanager create-secret --name "near-node/"$NODE_IDENTITY --description "Near Vote Account Secret created for stack $CF_STACK_NAME" --secret-string file:///home/near/config/vote-account-keypair.json --region $AWS_REGION
-
-#         if [[ $AUTHORIZED_WITHDRAWER_ACCOUNT_SECRET_ARN == "none" ]]; then
-#             echo "Create Authorized Withdrawer Account Secret"
-#             sudo ./near-keygen new --no-passphrase -o /home/near/config/authorized-withdrawer-keypair.json
-#             NODE_IDENTITY=$(sudo ./near-keygen pubkey /home/near/config/authorized-withdrawer-keypair.json)
-#             echo "Store Authorized Withdrawer Account  to AWS Secrets Manager"
-#             sudo aws secretsmanager create-secret --name "near-node/"$NODE_IDENTITY --description "Authorized Withdrawer Account Secret created for stack $CF_STACK_NAME" --secret-string file:///home/near/config/authorized-withdrawer-keypair.json --region $AWS_REGION
-
-#         else
-#             echo "Get Authorized Withdrawer Account Secret from AWS Secrets Manager"
-#             sudo aws secretsmanager get-secret-value --secret-id $AUTHORIZED_WITHDRAWER_ACCOUNT_SECRET_ARN --query SecretString --output text --region $AWS_REGION > ~/authorized-withdrawer-keypair.json
-#             sudo mv ~/authorized-withdrawer-keypair.json /home/near/config/authorized-withdrawer-keypair.json
-#         fi
-
-#         if [[ $REGISTRATION_TRANSACTION_FUNDING_ACCOUNT_SECRET_ARN != "none" ]]; then
-#           echo "Get Registration Transaction Funding Account Secret from AWS Secrets Manager"
-#           sudo aws secretsmanager get-secret-value --secret-id $REGISTRATION_TRANSACTION_FUNDING_ACCOUNT_SECRET_ARN --query SecretString --output text --region $AWS_REGION > ~/id.json
-#           sudo mkdir -p /root/.config/near
-#           sudo mv ~/id.json /root/.config/near/id.json
-#           echo "Creating Vote Account on-chain"
-#           sudo ./near create-vote-account /home/near/config/vote-account-keypair.json /home/near/config/validator-keypair.json /home/near/config/authorized-withdrawer-keypair.json
-
-#           echo "Delete Transaction Funding Account Secret from the local disc"
-#           sudo rm  /root/.config/near/id.json
-#         else
-#           echo "Vote Account not created. Please create it manually: https://docs.near.com/running-validator/validator-start#create-vote-account"
-#         fi
-
-#         echo "Delete Authorized Withdrawer Account from the local disc"
-#         sudo rm /home/near/config/authorized-withdrawer-keypair.json
-#     else
-#         echo "Get Vote Account Secret from AWS Secrets Manager"
-#         sudo aws secretsmanager get-secret-value --secret-id $VOTE_ACCOUNT_SECRET_ARN --query SecretString --output text --region $AWS_REGION > ~/vote-account-keypair.json
-#         sudo mv ~/vote-account-keypair.json /home/near/config/vote-account-keypair.json
-#     fi
-
-# mv /opt/near/node-consensus-template.sh /home/near/bin/validator.sh
-# fi
-
-# if [[ "$NEAR_NODE_TYPE" == "baserpc" ]]; then
-#   mv /opt/near/node-light-rpc-template.sh /home/near/bin/validator.sh
-# fi
-
-# if [[ "$NEAR_NODE_TYPE" == "extendedrpc" ]]; then
-#   mv /opt/near/node-heavy-rpc-template.sh /home/near/bin/validator.sh
-# fi
-
-# sed -i "s;__NEAR_METRICS_CONFIG__;\"$NEAR_METRICS_CONFIG\";g" /home/near/bin/validator.sh
-# sed -i "s/__EXPECTED_GENESIS_HASH__/$EXPECTED_GENESIS_HASH/g" /home/near/bin/validator.sh
-# sed -i "s/__KNOWN_VALIDATORS__/$KNOWN_VALIDATORS/g" /home/near/bin/validator.sh
-# sed -i "s/__ENTRY_POINTS__/$ENTRY_POINTS/g" /home/near/bin/validator.sh
-# sudo chmod +x /home/near/bin/validator.sh
+if [[ "$NEAR_NODE_TYPE" == "validator" ]]; then
+  echo "Getting Validator secrets from Secret Manager"
+  # Make sure you edit your NEAR key correctly as mentioned in the NEAR documentation
+  sudo aws secretsmanager get-secret-value --secret-id $NEAR_NODE_IDENTITY_SECRET_ARN --query SecretString --output text --region $AWS_REGION > /home/near/validator_key.json
+fi
 
 cfn-signal --stack $STACK_NAME --resource $RESOURCE_ID --region $AWS_REGION
 
@@ -314,53 +242,55 @@ git clone https://github.com/near/nearcore
 echo "Preparing NEAR start script"
 cd /home/near/nearcore/
 git checkout master
+# compiling Near
 make release
-/home/near/nearcore/target/release/neard --home /home/near init --chain-id $NEAR_NODE_TYPE
+/home/near/nearcore/target/release/neard --home /home/near init --chain-id $NEAR_NODE_TYPE --download-genesis --download-config
 
 cfn-signal --stack $STACK_NAME --resource $RESOURCE_ID --region $AWS_REGION
 
 # Updating the config file
-rm /home/near/config.json
-wget https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/mainnet/config.json -P /home/near/
+sudo rm /home/near/config.json
+sudo wget https://s3-us-west-1.amazonaws.com/build.nearprotocol.com/nearcore-deploy/$NEAR_CLUSTER/config.json -P /home/near/
 
 # echo "Getting NEAR Archive from S3"
-# aws s3 --no-sign-request cp s3://near-protocol-public/backups/testnet/rpc/latest .
+# aws s3 --no-sign-request cp s3://near-protocol-public/backups/$NEAR_CLUSTER/rpc/latest .
 # latest=$(cat latest)
-# aws s3 --no-sign-request cp --no-sign-request --recursive s3://near-protocol-public/backups/testnet/rpc/$latest /home/near/data
-
+# aws s3 --no-sign-request cp --no-sign-request --recursive s3://near-protocol-public/backups/$NEAR_CLUSTER/rpc/$latest /home/near/data
 
 cfn-signal --stack $STACK_NAME --resource $RESOURCE_ID --region $AWS_REGION
 
-echo "Starting near as a service"
-sudo bash -c 'cat > /etc/systemd/system/near.service <<EOF
-[Unit]
-Description=Near Validator
-After=network.target
-StartLimitIntervalSec=0
-[Service]
-Type=simple
-Restart=always
-RestartSec=1
-User=near
-LimitNOFILE=1000000
-LogRateLimitIntervalSec=0
-Environment="PATH=/bin:/usr/bin:/home/near/bin"
-ExecStart=/home/near/nearcore/target/release/neard --home /home/near run
-[Install]
-WantedBy=multi-user.target
-EOF'
+if [[ "$NEAR_NODE_TYPE" == "rpc" ]]; then
+  echo "Starting near RPC node as a service"
+  sudo bash -c 'cat > /etc/systemd/system/near.service <<EOF
+  [Unit]
+  Description=Near $NEAR_NODE_TYPE
+  After=network.target
+  StartLimitIntervalSec=0
+  [Service]
+  Type=simple
+  Restart=always
+  RestartSec=1
+  User=near
+  LimitNOFILE=1000000
+  LogRateLimitIntervalSec=0
+  Environment="PATH=/bin:/usr/bin:/home/near/bin"
+  ExecStart=/home/near/nearcore/target/release/neard --home /home/near run
+  [Install]
+  WantedBy=multi-user.target
+  EOF'
+fi
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now near
 
 echo 'Configuring logrotate to rotate Near logs'
 sudo bash -c 'sudo cat > logrotate.near <<EOF
-/home/near/near-validator.log {
+/home/near/near-rpc.log {
   rotate 7
   daily
   missingok
   postrotate
-    systemctl kill -s USR1 near.service
+  systemctl kill -s USR1 near.service
   endscript
 }
 EOF'
